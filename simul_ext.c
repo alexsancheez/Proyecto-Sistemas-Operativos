@@ -60,7 +60,9 @@ int main() {
         } while (ComprobarComando(comando, orden, argumento1, argumento2) != 0);
 
         if (strcmp(orden, "dir") == 0) {
-            Directorio(directorio, &ext_blq_inodos);
+            // Ahora se pasa el valor directamente (ext_blq_inodos). 
+            // Esto simplifica la llamada si la función no necesita modificar el valor del parámetro.
+            Directorio(directorio, ext_blq_inodos);
             continue;
         }
         // Escritura de metadatos en comandos rename, remove, copy
@@ -87,12 +89,44 @@ void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
 }
 
 int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argumento2) {
-    // Implementación pendiente
+//Ahora se analiza el comando recibido en strcomando, dividiéndolo en tres partes: orden, argumento1, y argumento2. 
+//Esto permite interpretar y validar comandos con uno o dos argumentos.
+    int i = 0, j = 0;
+    while (isspace(strcomando[i]) && (i < LONGITUD_COMANDO)) i++;
+    while (!isspace(strcomando[i]) && (i < LONGITUD_COMANDO)) {
+        orden[j] = strcomando[i];
+        i++;
+        j++;
+    }
+    orden[j] = '\0';
+    while (isspace(strcomando[i]) && (i < LONGITUD_COMANDO)) i++;
+    j = 0;
+    while (!isspace(strcomando[i]) && (i < LONGITUD_COMANDO)) {
+        argumento1[j] = strcomando[i];
+        i++;
+        j++;
+    }
+    argumento1[j] = '\0';
+    while (isspace(strcomando[i]) && (i < LONGITUD_COMANDO)) i++;
+    j = 0;
+    while (!isspace(strcomando[i]) && (i < LONGITUD_COMANDO)) {
+        argumento2[j] = strcomando[i];
+        i++;
+        j++;
+    }
+    argumento2[j] = '\0';
+    return 0;
     return 0;
 }
 
 void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup) {
-    // Implementación pendiente
+    // Se implementa la función para imprimir información del superbloque, como el tamaño del bloque, cantidad de inodos y bloques totales y libres. 
+    // Esto ayuda a inspeccionar el estado de la partición.
+    printf("Bloque %d\n", psup->s_block_size);
+    printf("inodos particion = %d\n", psup->s_inodes_count);
+    printf("inodos libres = %d\n", psup->s_free_inodes_count);
+    printf("bloques particion = %d\n", psup->s_blocks_count);
+    printf("bloques libres = %d\n", psup->s_free_blocks_count);
 }
 
 int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre) {
@@ -101,7 +135,13 @@ int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre)
 }
 
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
-    // Implementación pendiente
+    // Ahora muestra un listado de los archivos presentes en el directorio, indicando el nombre del fichero y su inodo asociado.
+    // Es útil para verificar los contenidos de la partición.
+     for (int i = 0; i < MAX_FICHEROS; i++) {
+        if (directorio[i].dir_inodo != NULL_INODO) {
+            printf("Fichero: %s, Inodo: %d\n", directorio[i].dir_nfich, directorio[i].dir_inodo);
+        }
+    }
 }
 
 int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo) {

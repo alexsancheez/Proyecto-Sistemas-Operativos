@@ -59,10 +59,12 @@ int main() {
             fgets(comando, LONGITUD_COMANDO, stdin);
         } while (ComprobarComando(comando, orden, argumento1, argumento2) != 0);
 
-        if (strcmp(orden, "dir") == 0) {
-            // Ahora se pasa el valor directamente (ext_blq_inodos). 
-            // Esto simplifica la llamada si la función no necesita modificar el valor del parámetro.
+         if (strcmp(orden, "dir") == 0) {
             Directorio(directorio, ext_blq_inodos);
+            continue;
+        }
+        if (strcmp(orden, "bytemaps") == 0) {
+            Printbytemaps(&ext_bytemaps);
             continue;
         }
         // Escritura de metadatos en comandos rename, remove, copy
@@ -83,9 +85,18 @@ int main() {
     }
 }
 
-// Funciones iniciales básicas (implementaciones vacías por ahora)
+
 void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps) {
-    // Implementación pendiente
+    int i;
+    printf("Inodos : ");
+    for (i = 0; i < MAX_INODOS; i++) {
+        printf("%d ", ext_bytemaps->bmap_inodos[i]);
+    }
+    printf("\nBloques : ");
+    for (i = 0; i < MAX_BLOQUES_DATOS; i++) {
+        printf("%d ", ext_bytemaps->bmap_bloques[i]);
+    }
+    printf("\n");
 }
 
 int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argumento2) {
@@ -135,11 +146,18 @@ int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre)
 }
 
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
-    // Ahora muestra un listado de los archivos presentes en el directorio, indicando el nombre del fichero y su inodo asociado.
-    // Es útil para verificar los contenidos de la partición.
-     for (int i = 0; i < MAX_FICHEROS; i++) {
+    int i, j;
+    for (i = 0; i < MAX_FICHEROS; i++) {
         if (directorio[i].dir_inodo != NULL_INODO) {
-            printf("Fichero: %s, Inodo: %d\n", directorio[i].dir_nfich, directorio[i].dir_inodo);
+            printf("Nombre: %s, ", directorio[i].dir_nfich);
+            printf("Tamaño: %d bytes, ", inodos->blq_inodos[directorio[i].dir_inodo].size_fichero);
+            printf("Bloques: ");
+            for (j = 0; j < MAX_NUMS_BLOQUES_INODO; j++) {
+                if (inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j] != NULL_BLOQUE) {
+                    printf("%d ", inodos->blq_inodos[directorio[i].dir_inodo].i_nbloque[j]);
+                }
+            }
+            printf("\n");
         }
     }
 }

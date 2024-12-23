@@ -9,6 +9,13 @@
 #define MAX_BLOQUES_PARTICION 2048
 #define SIZE_BLOQUE 1024
 
+//Estas constantes hacen el código más legible y flexible al manejar valores repetitivos como límites de inodos y bloques
+#define MAX_INODOS 64
+#define MAX_NUMS_BLOQUES_INODO 12
+#define NULL_INODO 0
+#define NULL_BLOQUE 0
+
+
 void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps);
 int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argumento2);
 void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup);
@@ -63,16 +70,19 @@ int main() {
             Directorio(directorio, ext_blq_inodos);
             continue;
         }
-        if (strcmp(orden, "bytemaps") == 0) {
-            Printbytemaps(&ext_bytemaps);
+
+        //Se añadió la capacidad de renombrar archivos desde el menú principal al incorporar el comando rename
+        if (strcmp(orden, "rename") == 0) {
+            Renombrar(directorio, ext_blq_inodos, argumento1, argumento2);
             continue;
         }
         // Escritura de metadatos en comandos rename, remove, copy
-        Grabarinodosydirectorio(directorio, &ext_blq_inodos, fent);
-        GrabarByteMaps(&ext_bytemaps, fent);
-        GrabarSuperBloque(&ext_superblock, fent);
+        //Eliminación del uso de punteros adicionales para GrabarByteMaps, GrabarSuperBloque y GrabarDatos, simplificando las llamadas y evitando confusión con los parámetros
+        Grabarinodosydirectorio(directorio, ext_blq_inodos, fent);
+        GrabarByteMaps(ext_bytemaps, fent);
+        GrabarSuperBloque(ext_superblock, fent);
         if (grabardatos)
-            GrabarDatos(&memdatos, fent);
+            GrabarDatos(memdatos, fent);
         grabardatos = 0;
 
         // Si el comando es salir se habrán escrito todos los metadatos
@@ -162,8 +172,18 @@ void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos) {
     }
 }
 
+//Ahora la función Renombrar busca un archivo por su nombre y permite cambiarlo por otro. Mejora la funcionalidad del programa
 int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo) {
-    // Implementación pendiente
+    int i;
+    for (i = 0; i < MAX_FICHEROS; i++) {
+        if (strcmp(directorio[i].dir_nfich, nombreantiguo) == 0) {
+            strcpy(directorio[i].dir_nfich, nombrenuevo);
+            printf("Archivo renombrado de %s a %s\n", nombreantiguo, nombrenuevo);
+            return 0;
+        }
+    }
+    printf("Archivo %s no encontrado\n", nombreantiguo);
+    return -1;
     return 0;
 }
 
